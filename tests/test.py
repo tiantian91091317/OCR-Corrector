@@ -1,6 +1,6 @@
 form .. import pycorrector
 
-sentence = '胯行转账'
+sentence = '兔密支付'
 
 de = pycorrector.detect(sentence)
 print(de)
