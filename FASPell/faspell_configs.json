@@ -1,0 +1,34 @@
+
+{
+  "general_configs": {
+    "rank": 2,
+    "round": 1,
+    "weights": {
+      "visual": 1,
+      "phonological": 0
+    },
+    "char_meta": "data/char_meta.txt",
+    "lm": {
+      "max_seq": 128,
+      "top_n": 3,
+      "batch_size": 5,
+      "vocab": "model/pre-trained/vocab.txt",
+      "bert_configs": "model/pre-trained/bert_config.json",
+      "pre-trained": "model/pre-trained/bert_model.ckpt",
+      "fine-tuned": "model/fine-tuned/model.ckpt-10000",
+      "fine_tuning_is_on": false
+    }
+  },
+  "exp_configs": {
+    "union_of_sims": false,
+    "testing_set": "test/cases.txt",
+    "training_set": "/path/to/training/set",
+    "tackle_n_gram_bias": true,
+    "dump_candidates": "",
+    "read_from_dump": false,
+    "filter_is_on": true,
+    "store_plots": "plots",
+    "store_latex": "",
+    "debug":true
+  }
+}

@@ -227,7 +227,7 @@ class Detector(object):
             maybe_errors.append(maybe_err)
 
     @staticmethod
-    def _get_maybe_error_index(scores, ratio=0.6745, threshold=0.4):
+    def _get_maybe_error_index(scores, ratio=0.6745, threshold = 1.0):
         """
         取疑似错字的位置，通过平均绝对离差（MAD）
         :param scores: np.array
@@ -324,3 +324,4 @@ class Detector(object):
             except Exception as e:
                 logger.warn("detect error, sentence:" + sentence + str(e))
         return sorted(maybe_errors, key=lambda k: k[1], reverse=False)
+

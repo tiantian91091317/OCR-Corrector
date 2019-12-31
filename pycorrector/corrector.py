@@ -13,6 +13,7 @@ from pycorrector.utils.io_utils import get_logger
 from pycorrector.utils.math_utils import edit_distance_word
 from pycorrector.utils.text_utils import is_chinese_string
 
+
 default_logger = get_logger(__file__)
 pwd_path = os.path.abspath(os.path.dirname(__file__))
 
@@ -23,7 +24,6 @@ def load_char_set(path):
         for w in f:
             words.add(w.strip())
     return words
-
 
 def load_same_pinyin(path, sep='\t'):
     """
@@ -52,7 +52,6 @@ def load_same_pinyin(path, sep='\t'):
                 result[key_char] = value
     return result
 
-
 def load_same_stroke(path):
     """
     加载形似字
@@ -69,13 +68,15 @@ def load_same_stroke(path):
             line = line.strip()
             if line.startswith('#'):
                 continue
-            parts = list(line)
-            if ' ' in parts:            #去掉空格
-                parts.remove(' ')
-            if parts and len(parts) > 1:
-                for i, c in enumerate(parts):
-                    result[c] = set(list(parts[:i] + parts[i + 1:]))
+            parts = line.split(' ')
+            if len(parts) > 1:
+                result[parts[0]] = set(parts[1])
+
     return result
+
+def pprint(name, content):
+    print('The {} is:'.format(name))
+    print(content)
 
 
 
@@ -166,6 +167,7 @@ class Corrector(Detector):
         confusion_word_set = set()
         if word in self.custom_confusion:
             confusion_word_set = {self.custom_confusion[word]}
+        pprint('confusion_word_set', confusion_word_set)
         return confusion_word_set
 
     # TODO: need more faster
@@ -183,22 +185,33 @@ class Corrector(Detector):
         # candidates_1_order.extend(self._confusion_word_set(word))
         # custom confusion word
         candidates_1_order.extend(self._confusion_custom_set(word))
+        # pprint('candidates_1_order',candidates_1_order)
         # same pinyin char
         if len(word) == 1:
             # same one char stroke
             confusion = [i for i in self._confusion_char_set(word[0]) if i]
             candidates_2_order.extend(confusion)
+            # print('same one char stroke:')
+            # pprint('candidates_2_order',candidates_2_order)
         if len(word) == 2:
             # same first char stroke
             confusion = [i + word[1:] for i in self._confusion_char_set(word[0]) if i]
             candidates_2_order.extend(confusion)
+            # print('same first char stroke:')
+            # pprint('candidates_2_order',candidates_2_order)
             # same last char stroke
             confusion = [word[:-1] + i for i in self._confusion_char_set(word[-1]) if i]
             candidates_2_order.extend(confusion)
+            # print('same last char stroke:')
+            # pprint('candidates_2_order',candidates_2_order)
+
         if len(word) > 2:
             # same mid char stroke
             confusion = [word[0] + i + word[2:] for i in self._confusion_char_set(word[1])]
             candidates_3_order.extend(confusion)
+            # print('same mid char stroke:')
+            # pprint('candidates_3_order',candidates_2_order)
+
 
             # same first word stroke
             # confusion_word = [i + word[-1] for i in self._confusion_word_set(word[:-1])]
@@ -220,6 +233,9 @@ class Corrector(Detector):
         """
         if item not in maybe_right_items:
             maybe_right_items.append(item)
+        for k in maybe_right_items:
+            pprint('candidate_word', k)
+            pprint('ppl score', self.ppl_score(list(before_sent + k + after_sent)))
         corrected_item = min(maybe_right_items, key=lambda k: self.ppl_score(list(before_sent + k + after_sent)))
         return corrected_item
 
@@ -236,11 +252,14 @@ class Corrector(Detector):
         maybe_errors = self.detect(sentence)
         # trick: 类似翻译模型，倒序处理；用end_idx排序，倒序
         maybe_errors = sorted(maybe_errors, key=operator.itemgetter(2), reverse=True)
+        pprint('ordered maybe errors',maybe_errors)
+        print('---generate items:')
+        # 居然一个一个地改[抠鼻][抠鼻]    
         for item, begin_idx, end_idx, err_type in maybe_errors:
             # 纠错，逐个处理
             before_sent = sentence[:begin_idx]
             after_sent = sentence[end_idx:]
-
+            pprint('item,err_type',[item,err_type])
             # 困惑集中指定的词，直接取结果
             if err_type == error_type["confusion"]:
                 corrected_item = self.custom_confusion[item]
@@ -250,9 +269,11 @@ class Corrector(Detector):
                     continue
                 # 取得所有可能正确的词
                 maybe_right_items = self.generate_items(item)
+                pprint('maybe_right_items',maybe_right_items)
                 if not maybe_right_items:
                     continue
                 corrected_item = self.lm_correct_item(item, maybe_right_items, before_sent, after_sent)
+                pprint('corrected_item',corrected_item)
             # output
             if corrected_item != item:
                 sentence = before_sent + corrected_item + after_sent
@@ -261,3 +282,4 @@ class Corrector(Detector):
                 detail.append(detail_word)
         detail = sorted(detail, key=operator.itemgetter(2))
         return sentence, detail
+
