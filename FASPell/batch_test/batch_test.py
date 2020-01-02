@@ -13,7 +13,7 @@ import os
 import re
 import time
 
-from faspell import SpellChecker, repeat_test
+from FASPell.faspell import SpellChecker, repeat_test
 
 logging.getLogger(__name__)
 logging.basicConfig(level=logging.DEBUG,
@@ -22,7 +22,7 @@ logging.basicConfig(level=logging.DEBUG,
 corpus_root_path = 'batch_test/corpus'
 special_sign = [u'\uff08', u'\uff09']  # 为括号、句号之类的，可以被bert纠错的符号准备
 deep_url = ''
-CONFIGS = json.loads(open('faspell_configs.json', 'r', encoding='utf-8').read())
+CONFIGS = json.loads(open('FASPell/faspell_configs.json', 'r', encoding='utf-8').read())
 
 class SmallCorpus(object):
     def __init__(self, corpus_root_path):

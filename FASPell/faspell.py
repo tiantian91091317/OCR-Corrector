@@ -338,18 +338,35 @@ class SpellChecker(object):
                 # when testing on SIGHAN13,14,15, we recommend using `extension()` to solve
                 # issues caused by full-width humbers;
                 # when testing on OCR data, we recommend using `extended_cand = cand`
-                # extended_cand = extension(cand)
-                extended_cand = cand  # 此处的 cand 就是 masked_lm 出来的 一句话的 candidate，
+                extended_cand = extension(cand)
+                logging.debug('extended candidates are:')
+                for no, c in enumerate(extended_cand):
+                    logging.debug(f'No.{no}: {c}')
+                # extended_cand = cand  # 此处的 cand 就是 masked_lm 出来的 一句话的 candidate，
                 # [[('国', 0.99), ('國', 0.01)],[('际', 0.99), ('家', 0.01)]]
 
                 history = self.correction_history(sentences[i], real_errors[i], extended_cand) if real_errors else None
 
+                # num = 0
                 for j, cand_tokens in enumerate(extended_cand):  # 对文本中每个汉字进行循环，每个汉字的纠错过程记录为一个 error dict
                     # cand_tokens [('国', 0.99), ('世', 0.01)]
+
                     if 0 < j < len(extended_cand) - 1:  # skip the head and the end placeholders -- `。`
                         # print(j)
                         # char：原来正确的汉字，国
                         char = sentences[i][j - 1]
+                        #
+                        # if num > 6:
+                        #     num = 5
+                        # else:
+                        #     if u'\u0030' <= char <= u'\u0039':
+                        #         char = sentences[i][j - 1 + num]
+                        #         num += 1
+                        #
+                        #     else:
+                        #         num = 0
+
+                        logging.debug('第%d个字符：%s', j, char)
 
                         # detect and correct errors
                         error = None
@@ -501,6 +518,15 @@ class SpellChecker(object):
     def correction_service(self, sentences, real_errors=None, is_train=False, train_on_difference=True):
         """correction service for CV. only return result sentences;
         for convenience, do not repeat"""
+
+        # re_num = r'[0-9]+'
+        # numbered_s = []
+        #
+        # for i, s in enumerate(sentences):
+        #     has_num = re.findall(re_num, s)
+        #     if has_num:
+        #         numbered_s.append({i:has_num})
+
         results = self.make_corrections(sentences,
                                         real_errors=real_errors,
                                         is_train=is_train,
@@ -518,25 +544,20 @@ class SpellChecker(object):
 
 
 def extension(candidates):
-    """this function is to resolve the bug that when two adjacent full-width numbers/letters are fed to mlm,
+    """this function is to resolve the bug that when several adjacent full-width numbers/letters are fed to mlm,
        the output will be merged as one output, thus lead to wrong alignments."""
     new_candidates = []
+    top_n = CONFIGS["general_configs"]["lm"]["top_n"]
+
     for j, cand_tokens in enumerate(candidates):
         real_cand_tokens = cand_tokens[0][0]
         if '##' in real_cand_tokens:  # sometimes the result contains '##', so we need to get rid of them first
             real_cand_tokens = real_cand_tokens[2:]
 
-        if len(real_cand_tokens) == 2 and not re.findall(r'[a-zA-ZＡ-Ｚａ-ｚ]+', real_cand_tokens):
-            a = []
-            b = []
-            for cand, score in cand_tokens:
-                real_cand = cand
-                if '##' in real_cand:
-                    real_cand = real_cand[2:]
-                a.append((real_cand[0], score))
-                b.append((real_cand[-1], score))
-            new_candidates.append(a)
-            new_candidates.append(b)
+        if len(real_cand_tokens) >= 2 and not re.findall(r'[a-zA-ZＡ-Ｚａ-ｚ]+', real_cand_tokens):
+            # 因为反正不需要对数字纠错，所以就把bert输出写死为('#', 0)
+            extended = [[('#', 0)] * top_n] * len(real_cand_tokens)
+            new_candidates += extended
             continue
         new_candidates.append(cand_tokens)
 
