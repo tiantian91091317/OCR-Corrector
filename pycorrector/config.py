@@ -22,3 +22,4 @@ person_name_path = 'data/person_name.txt'
 place_name_path = 'data/place_name.txt'
 # 停用词
 stopwords_path = 'data/stopwords.txt'
+

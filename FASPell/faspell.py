@@ -1,13 +1,13 @@
-from char_sim import CharFuncs
-from masked_lm import MaskedLM
-from bert_modified import modeling
+from FASPell.char_sim import CharFuncs
+from FASPell.masked_lm import MaskedLM
+from FASPell.bert_modified import modeling
 import re
 import json
 import pickle
 import argparse
 import numpy
 import logging
-import plot
+import FASPell.plot
 import tqdm
 import time
 
@@ -18,7 +18,7 @@ __date__ = '10/09/2019'
 __description__ = 'The main script for FASPell - Fast, Adaptable, Simple, Powerful Chinese Spell Checker'
 
 
-CONFIGS = json.loads(open('faspell_configs.json', 'r', encoding='utf-8').read())
+CONFIGS = json.loads(open('FASPell/faspell_configs.json', 'r', encoding='utf-8').read())
 
 WEIGHTS = (CONFIGS["general_configs"]["weights"]["visual"], CONFIGS["general_configs"]["weights"]["phonological"], 0.0)
 

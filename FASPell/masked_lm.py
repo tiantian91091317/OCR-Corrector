@@ -1,8 +1,8 @@
 import sys, os
 import tensorflow as tf
-from bert_modified import modeling
+from FASPell.bert_modified import modeling
 import numpy as np
-from bert_modified import tokenization
+from FASPell.bert_modified import tokenization
 import tensorflow.contrib.keras as kr
 import json
 import warnings
@@ -31,9 +31,9 @@ os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3'
 
 class Config(object):
     max_seq_length = 16
-    vocab_file = "model/pre-trained/vocab.txt"
-    bert_config_file = "model/pre-trained/bert_config.json"
-    init_checkpoint = "model/pre-trained/bert_model.ckpt"
+    vocab_file = "FASPell/model/pre-trained/vocab.txt"
+    bert_config_file = "FASPell/model/pre-trained/bert_config.json"
+    init_checkpoint = "FASPell/model/pre-trained/bert_model.ckpt"
     bert_config = modeling.BertConfig.from_json_file(bert_config_file)
     topn = 5
     bigrams = None  # pickle.load(open('bigram_dict_simplified.sav', 'rb'))

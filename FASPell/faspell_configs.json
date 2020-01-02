@@ -7,21 +7,21 @@
       "visual": 1,
       "phonological": 0
     },
-    "char_meta": "data/char_meta.txt",
+    "char_meta": "FASPell/data/char_meta.txt",
     "lm": {
       "max_seq": 128,
       "top_n": 3,
       "batch_size": 5,
-      "vocab": "model/pre-trained/vocab.txt",
-      "bert_configs": "model/pre-trained/bert_config.json",
-      "pre-trained": "model/pre-trained/bert_model.ckpt",
-      "fine-tuned": "model/fine-tuned/model.ckpt-10000",
+      "vocab": "FASPell/model/pre-trained/vocab.txt",
+      "bert_configs": "FASPell/model/pre-trained/bert_config.json",
+      "pre-trained": "FASPell/model/pre-trained/bert_model.ckpt",
+      "fine-tuned": "FASPell/model/fine-tuned/model.ckpt-10000",
       "fine_tuning_is_on": false
     }
   },
   "exp_configs": {
     "union_of_sims": false,
-    "testing_set": "test/cases.txt",
+    "testing_set": "FASPell/test/cases.txt",
     "training_set": "/path/to/training/set",
     "tackle_n_gram_bias": true,
     "dump_candidates": "",
