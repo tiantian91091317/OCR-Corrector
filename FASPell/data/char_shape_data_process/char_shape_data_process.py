@@ -293,8 +293,8 @@ def main(updated = True):
 
 if __name__ == '__main__':
     # process_one_char_ids('两')
-    # main(updated = True)
-    look_up_char()
+    main(updated = True)
+    # look_up_char()
     # update_leafs()
 
 

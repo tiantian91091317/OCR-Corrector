@@ -22,12 +22,12 @@
   "exp_configs": {
     "union_of_sims": false,
     "testing_set": "FASPell/test/cases.txt",
-    "training_set": "/path/to/training/set",
+    "training_set": "FASPell/test/cases.txt",
     "tackle_n_gram_bias": true,
     "dump_candidates": "",
     "read_from_dump": false,
     "filter_is_on": true,
-    "store_plots": "plots",
+    "store_plots": "FASPell/plots",
     "store_latex": "",
     "debug":true
   }

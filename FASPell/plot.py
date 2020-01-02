@@ -5,7 +5,7 @@ import matplotlib.pyplot as plt
 import os
 
 
-def plot(json_fname, results_fname, store_plots='', plots_to_latex=''):
+def plot(json_fname, results_fname, store_plots='FASPell/', plots_to_latex=''):
     name = '.'.join(json_fname.split('.')[:-1])
 
     data = json.loads(open(json_fname, 'r', encoding='utf-8').read())
