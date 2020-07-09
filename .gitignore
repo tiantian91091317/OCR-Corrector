@@ -3,3 +3,4 @@
 data/char_meta.txt
 model/
 *.pytest_cache
+*__pycache__/
