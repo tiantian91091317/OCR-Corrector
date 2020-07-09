@@ -1,0 +1,28 @@
+{
+  "tfserving_port": "your port",
+  "tfserving_ip": "your ip",
+  "correct_config": {
+    "report_config": {
+      "prob_threshold": 0.9,
+      "similarity_threshold": 0.3,
+      "char_meta_file": "data/char_meta.txt",
+      "key_words_file": "data/kwds_credit_report.txt"
+    },
+    "your_config": {
+      "prob_threshold": 0.9,
+      "similarity_threshold": 0.6,
+      "char_meta_file": "data/char_meta.txt",
+      "key_words_file": "data/your_kwds.txt"
+    },
+    "bert_config": {
+      "prob_threshold": 0.9,
+      "max_seq_length": 64,
+      "topn": 3,
+      "batch_size": 16,
+      "char_meta_file": "data/char_meta.txt",
+      "vocab_file": "correcter/bert_modified/vocab.txt",
+      "bert_config_file": "correcter/bert_modified/bert_config.json",
+      "init_checkpoint": "model/pre-trained/bert_model.ckpt"
+    }
+  }
+}
