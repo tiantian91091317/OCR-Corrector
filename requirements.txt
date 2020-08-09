@@ -2,3 +2,4 @@ six==1.12.0
 tensorflow==1.15.0
 numpy==1.16.0
 python_Levenshtein==0.12.0
+requests==2.22.0

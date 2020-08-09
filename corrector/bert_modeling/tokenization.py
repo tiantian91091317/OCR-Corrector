@@ -81,6 +81,11 @@ def load_vocab(vocab_file):
       index += 1
   return vocab
 
+def inverse_vocab(vocab):
+  idx_to_word = {}
+  for word in vocab:
+    idx_to_word[vocab[word]] = word
+  return idx_to_word
 
 def convert_tokens_to_ids(vocab, tokens):
   """Converts a sequence of tokens into ids using the vocab."""
@@ -104,6 +109,7 @@ class FullTokenizer(object):
 
   def __init__(self, vocab_file, do_lower_case=True):
     self.vocab = load_vocab(vocab_file)
+    self.ids_to_vocab = inverse_vocab(self.vocab)
     self.basic_tokenizer = BasicTokenizer(do_lower_case=do_lower_case)
     self.wordpiece_tokenizer = WordpieceTokenizer(vocab=self.vocab)
 
@@ -117,6 +123,12 @@ class FullTokenizer(object):
 
   def convert_tokens_to_ids(self, tokens):
     return convert_tokens_to_ids(self.vocab, tokens)
+
+  def convert_ids_to_tokens(self, ids):
+    tokens = []
+    for i in ids:
+      tokens.append(self.ids_to_vocab[i])
+    return tokens
 
 
 class BasicTokenizer(object):
@@ -298,7 +310,7 @@ class WordpieceTokenizer(object):
 
 def _is_whitespace(char):
   """Checks whether `chars` is a whitespace character."""
-  # \t, \n, and \r are technically contorl characters but we treat them
+  # \t, \n, and \r are technically control characters but we treat them
   # as whitespace since they are generally considered as such.
   if char == " " or char == "\t" or char == "\n" or char == "\r":
     return True

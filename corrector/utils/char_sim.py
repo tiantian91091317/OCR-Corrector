@@ -1,10 +1,4 @@
-"""
-Requirements:
-
- - java (required only if tree edit distance is used)
- - numpy
-
-"""
+import os
 import numpy as np
 from subprocess import Popen, PIPE, STDOUT
 import argparse
@@ -99,7 +93,7 @@ def edit_distance(string_a, string_b, name='Levenshtein'):
 
 class CharFuncs(object):
     def __init__(self, char_meta_fname):
-        self.data = self.load_char_meta(char_meta_fname)
+        self.data = load_char_meta(char_meta_fname)
         self.char_dict = dict([(c, 0) for c in self.data])
 
         self.safe = {'\u2ff0': 'A',  # to eliminate the bug that, in Windows CMD, char ⿻ and ⿵ are encoded to be the same.
@@ -114,20 +108,6 @@ class CharFuncs(object):
                      '\u2ff9': 'J',
                      '\u2ffa': 'L',
                      '\u2ffb': 'M',}
-
-    @staticmethod
-    def load_char_meta(fname):
-        data = {}
-        f = open(fname, 'r', encoding='utf-8')
-        for line in f:
-            items = line.strip().split('\t')
-            code_point = items[0]
-            char = items[1]
-            pronunciation = items[2]
-            decompositions = items[3:]
-            assert char not in data
-            data[char] = {"code_point": code_point, "pronunciation": pronunciation, "decompositions": decompositions}
-        return data
 
     def shape_distance(self, char1, char2, safe=True, as_tree=False):
         """
@@ -375,6 +355,20 @@ class CharFuncs(object):
         return decomps
 
 
+def load_char_meta(fname):
+    fname = os.path.join(os.path.dirname(os.path.dirname(__file__)), fname)
+    data = {}
+    f = open(fname, 'r', encoding='utf-8')
+    for line in f:
+        items = line.strip().split('\t')
+        code_point = items[0]
+        char = items[1]
+        pronunciation = items[2]
+        decompositions = items[3:]
+        assert char not in data
+        data[char] = {"code_point": code_point, "pronunciation": pronunciation, "decompositions": decompositions}
+    return data
+
 
 def string_to_tree(string):
     """
@@ -432,50 +426,6 @@ def string_to_tree(string):
     return '{' + res + '}'
 
 
-def pinyin_map(standard_pinyin):
-    """
-    >>> pinyin_map('xuě')
-    'xue3'
-    >>> pinyin_map('xue')
-    'xue'
-    >>> pinyin_map('lǜ')
-    'lü4'
-    >>> pinyin_map('fá')
-    'fa2'
-    """
-    tone = ''
-    pinyin = ''
-
-    assert ' ' not in standard_pinyin
-    for c in standard_pinyin:
-        if c in PINYIN:
-            pinyin += PINYIN[c][0]
-            assert tone == ''
-            tone = str(PINYIN[c][1])
-        else:
-            pinyin += c
-    pinyin += tone
-    return pinyin
-
-def parse_args():
-    usage = '\n1. You can compute character similarity by:\n' \
-            'python char_sim.py 午 牛 年 千\n' \
-            '\n' \
-            '2. You can use ted in computing character similarity by:\n' \
-            'python char_sim.py 午 牛 年 千 -t\n' \
-            '\n'
-    parser = argparse.ArgumentParser(
-        description='A script to compute Chinese character (Kanji) similarity', usage=usage)
-
-    parser.add_argument('multiargs', nargs='*', type=str, default=None,
-                        help='Chinese characters in question')
-    parser.add_argument('--ted', '-t', action="store_true", default=False,
-                        help='True=to use tree edit distence (TED)'
-                             'False=to use string edit distance')
-
-    args = parser.parse_args()
-    return args
-
 def test():
     c = CharFuncs('data/char_meta.txt')
     text = ['未还本金', '宋还本金', '个处个业','数期31-60大']
@@ -489,20 +439,4 @@ def test():
 
 if __name__ == '__main__':
     test()
-    # args = parse_args()
-    # c = CharFuncs('data/char_meta.txt')
-    # if not args.ted:
-    #     for i, c1 in enumerate(args.multiargs):
-    #         for c2 in args.multiargs[i:]:
-    #             if c1 != c2:
-    #                 print(f'For character pair ({c1}, {c2}):')
-    #                 print(f'    v-sim = {c.shape_similarity(c1, c2)}')
-    #                 print(f'    p-sim = {c.pronunciation_similarity(c1, c2)}\n')
-    # else:
-    #     for i, c1 in enumerate(args.multiargs):
-    #         for c2 in args.multiargs[i:]:
-    #             if c1 != c2:
-    #                 print(f'For character pair ({c1}, {c2}):')
-    #                 print(f'    v-sim = {c.shape_similarity(c1, c2, as_tree=True)}')
-    #                 print(f'    p-sim = {c.pronunciation_similarity(c1, c2)}\n')
 

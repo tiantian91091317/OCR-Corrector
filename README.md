@@ -1,112 +1,166 @@
-# OCR后处理-纠错
-## 概述
-专门针对OCR进行的纠错工作。
-### 要点
-1. 使用OCR预测的字符概率作为检错的标准
-2. 使用BERT模型预测正确的字
-3. 使用关键词匹配法寻找正确的关键词
+# OCR-Corrector
 
+专为OCR设计的纠错器。
+
+未来计划涵盖OCR需要的各种NLP工具，包括：
+1. 粘连文本分词
+2. 命名实体识别
+3. 键值对匹配
+
+# 文本纠错功能（2020.07）
+
+输入OCR识别结果（文本+单字符置信度），输出修正后的文本。
+
+## 示例1
+
+输入：
+```
+text = '我爱北京大安门'
+probs = [0.99, 0.99, 0.99, 0.99, 0.56, 0.99, 0.99]
+```
+
+输出：
+```
+text_corrected = '我爱北京天安门'
+```
+
+## 示例2
+
+输入：
+```
+text = '本着平等、白愿、诚信、互利的原则'
+probs = [0.99, 0.99, 0.99, 0.99, 0.99, 0.78, 0.99, 0.99, 0.99, 0.99, 0.99, 0.99, 0.99, 0.99, 0.99, 0.99]
+```
+输出：
+```
+text_corrected = '本着平等、自愿、诚信、互利的原则'
+```
+
+
+# 细分场景
+
+目前按照业务场景，分别开发了两种纠错器：文档识别纠错器，单据识别纠错器
+
+## 文档识别
+文档是指书籍内页拍摄的图片、扫描的合同等有大段文字的图片。
+
+### 示例
+
+
+原图：
+<img src="./data/img1.jpeg" width="400" />
+
+纠错结果：
 <img src="./data/示意图.png" width="400" />
 
-### 性能指标
-测试中，待更新
 
-## 1 项目目标
+## 单据识别
+单据是指字段、格式相对固定，有统一模板或者近似统一的图片，比如身份证、银行卡、驾驶证、发票等等，主要特点是单据上出现的文本段相对固定。
 
-在OCR识别出结果后，利用NLP技术对结果进行修正，主要引入了非视觉信息的语义的信息，包括
+### 示例
 
-局部语义（即OCR识别结果需要是通顺的一句话）或全局语义（OCR识别某种单据只能输出某些词）。
+**todo:**
+原图：
+<img src="./data/示意图.png" width="400" />
 
-目标F1：待更新
+错误文本：
+<img src="./data/示意图.png" width="400" />
 
-目标速度：每张图片耗时为OCR识别本身耗时的1/10以下
 
-## 2 方法综述
+# 使用方法
 
-### 2.1 NLP方面
+1. clone 项目
+```bash
+git clone https://github.com/tiantian91091317/OCR-Corrector.git
+```
 
-纠错方法和NLP主流方法相同，一般可分为：
-
-**2.1.1** 统计语言模型
-
-​建立 2-gram，3-gram语言模型，根据语言模型评分来发现错字、从候选集中选择。
-
-**2.1.2** seq2seq模型
-
- 准备 错句vs对句 样本对，和训练翻译模型一样训练，预测时输入错句，直接输出对句。优点是可以handle加字减字的情况，缺点是容易改错。
-
-**2.1.3** transformer模型
-
-在预训练的bert模型上进行fine-tune，准备 错句vs对句 样本对，输入错句，输出句中每个字的预测结果；之后再根据预测结果的置信度及字形特征决定是否修改。
-
-优点是预测可以考虑上下文，结果比较准确；缺点是速度较慢，其次在OCR使用场景中较难输入完整的句子，会降低准确率甚至错纠。
-
-### 2.2 字形方面
-
-专门针对OCR的纠错一般加入对字形的考虑，本质上是对 p(原字|错误字) 后验概率分布的模拟。加入字形因素的方法有：
-
-**2.2.1** 建立形近字字典，纠错范围限于形近字；
-
-**2.2.2** 将汉字的字形以某种方式编码，使得编码后汉字的编辑距离可以表征误识别的可能性。了解到的比较好用的方法为，将汉字笔画拆解后得到编码，详见https://github.com/cjkvi/cjkvi-ids。
-
-## 3 方案说明
-
-为贴合业务场景，提出本方案：
-
-**3.0.1** 主要使用了2种方法，对应2种业务场景。
-
-| 方案   | 场景   | 特点           |   场景举例   |
-| ------ | ------ | -------------- | ---- |
-| BERT   | 文档类 | 文本长，范围大 | 文章 |
-| 关键字 | 单据类 | 文本短，范围窄 | 证件，单据，表格 |
-
-**3.0.2** 错误定位部分，直接采用OCR算法在预测文字时softmax输出的概率值作为标准。这样首先可以更精准地定位错误，减少了错纠的可能性，其次大大提升了性能，不必对全篇进行纠正。
-
-### 3.1 BERT纠错方案
-
-主要参考了爱奇艺的 [Faspell 项目](https://github.com/iqiyi/FASPell)，对应2.1.3及2.2.2。
-
-### 3.2 关键字纠错方案
-
-针对某特定种类单据，准备一个关键词表。根据3.0.2的方法确定错词后，首先利用 BKTree 搜索关键词表中和其编辑距离等于错字数的词，然后根据错字位置进行过滤，得到候选字，用 2.2.2 的方法找到编辑距离最近的字进行替换。
-
-## 4 使用方法
-### 4.1 安装依赖
-pip install -r requirements.txt
-
-### 4.2 数据准备
-
-**4.2.1** BERT 模型
-下载[预训练好的BERT模型](https://storage.googleapis.com/bert_models/2018_11_03/chinese_L-12_H-768_A-12.zip) 到 model/pre-trained 目录下
-如需进行fine-tuning，请参照BERT
-
-**4.2.2** 字形编码文件
-下载char_meta.txt 字形编码（IDS）文件下载后放到 data 目录下
+2. 下载模型和数据
+1）下载[预训练好的BERT模型](https://storage.googleapis.com/bert_models/2018_11_03/chinese_L-12_H-768_A-12.zip) 到 corrector/model/pre-trained 目录下
+2）下载 char_meta.txt 字形编码（IDS）文件下载后放到 corrector/config 目录下
 下载地址:https://pan.baidu.com/s/1iqA-GbzzHBBWfWaxe1g_fg  密码:3f11
 
-### 4.3 使用
+3. 安装
+```bash
+python setup.py install
+```
 
-运行 sh bin/correct_ocr_result.sh <图片名称 img1.jpeg|img2.jpeg> 测试纠错效果
-img1.jpeg : 文档类，测试BERT模型
-img2.jpeg : 单据类，测试关键字法
+## 使用
 
-## 5 优化方向
+### 方法一
+可以嵌入到OCR识别的代码里面，将识别模型输出的结果输入纠错器。
 
-### 5.1 代码优化
+```python
+import ocr_corrector
 
-### 5.2 效果
+corrector = ocr_corrector.initial()
+ocr_results, recog_probs = my_ocr(img)
+ocr_res_corrected = corrector.correct(ocr_results, recog_probs, biz_type)
 
-**5.2.1** bert 纠错依赖充分的上下文，OCR识别时单张小图识别结果可能只是一段话中的一个片段，会影响bert的预测结果。可能需要优化OCR使其输出段落信息。
+```
 
-**5.2.2** bert模型未针对当前业务场景进行微调。
+可以通过运行以下命令进行测试：
+```bash
+# 测试文档识别纠错
+python demo.py --img=data/img1.jpeg --biz=doc --api=own
+# 测试单据识别纠错
+python demo.py --img=data/img2.jpeg --biz=report --api=own
+```
 
-### 5.3 性能
+### 方法二
+可以调用识别API后进行后处理。目前支持[阿里高精版识别接口](https://market.aliyun.com/products/57124001/cmapi028554.html?spm=5176.200117.0.0.4f57261aiZhbVd&innerSource=search#sku=yuncode2255400000)的调用。
+需要先申请 app code（可以开通免费试用）；然后在 ```corrector/api_call/ali_ocr.py``` 中更新app code：
+```python
+	url = 'https://ocrapi-advanced.taobao.com/ocrservice/advanced'
+    post_data = {"img":img,
+                 "prob":True,
+                 "charInfo":True
+                 }
+    app_code = your_app_code
+```
+然后可以任意传图片测试纠错结果。
 
-**5.3.1** bert 模型性能调优。
+```bash
+python demo.py --img=data/test.jpg --biz=[doc|report] --api=ali 
+```
 
-## 参考文献
+### 新增单据类型
+文档识别的纠错主要利用局部语义信息进行纠错，**无需**特殊配置；
+对于单据识别，由于主要基于其关键词表进行纠错，所以需要进行配置（以新增保单识别为例）：
+1. 在 ```corrector/config/config.json``` 中增加新单据类型的配置：
+```json
+{
+      "biz_type": "insurance",
+      "corrector_type":"keyword",
+      "prob_threshold": 0.9,
+      "similarity_threshold": 0.6,
+      "char_meta_file": "config/char_meta.txt",
+      "key_words_file": "config/kwds_insurance.txt"
+    }
+```
+2. 在 ```corrector/config/``` 目录下增加关键词表 ```kwds_insurance.txt```：
+```
+投保人
+被保险人
+受益人
+险种名称
+……
+```
 
-爱奇艺 Faspell：
-https://github.com/iqiyi/FASPell
-pycorrector：
-https://github.com/shibing624/pycorrector
+# 原理
+
+## 文档识别的纠错
+
+## 单据识别的纠错
+
+# 参考项目
+
+# 创新点
+
+## 置信度（2020.07）
+
+## 关键词表法纠错（2020.07）
+
+# 未来计划
+
+1. 将纠错拓展到非汉字的其他字符，比如 日期、证件号码、标点符号等；
+2. 形成OCR所需的NLP工具包，包括粘连文本分词、命名实体识别、键值对匹配等等

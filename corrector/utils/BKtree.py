@@ -1,4 +1,19 @@
+#!/usr/bin/env python
+# -*- encoding: utf-8 -*-
+"""
+@Author  : Tian
+@File    : BKtree.py
+@Time    : 2020/8/3 10:21 PM
+@Desc    : BKTree class for keywords search
+@Version : 1.0
+"""
+
+"""
+reference: 刘树春等, 深度实践OCR：基于深度学习的文字识别, 9.1.1节
+"""
+
 from Levenshtein import distance
+import os
 
 class Node(object):  # 🌲的结点
     def __init__(self, word):
@@ -58,6 +73,7 @@ class BKTree(object):
 
     @staticmethod
     def load_diction(diction):
+        diction = os.path.join(os.path.dirname(os.path.dirname(__file__)), diction)
         with open(diction) as f:
             lines = f.readlines()
             lines = [l.strip() for l in lines]

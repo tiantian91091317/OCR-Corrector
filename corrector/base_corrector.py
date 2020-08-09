@@ -2,7 +2,7 @@
 # -*- encoding: utf-8 -*-
 """
 @Title   : OCR纠错服务
-@File    :   ocr_correcter.py
+@File    :   base_corrector.py
 @Author  : Tian
 @Time    : 2020/06/16 5:04 下午
 @Version : 1.0
@@ -10,17 +10,17 @@
 import re
 from abc import ABCMeta, abstractmethod
 import logging
-from correcter.utils.char_sim import CharFuncs
+from corrector.utils.char_sim import CharFuncs
 
 logger = logging.getLogger(__name__)
 
-class CorrecterConfig:
+class CorrectorConfig:
     prob_threshold = 0.9
     similarity_threshold = 0.6
     key_words_file = 'data/kwds_credit_report.txt'
     char_meta_file = 'data/char_meta.txt'
 
-class BaseCorrecter(metaclass=ABCMeta):
+class BaseCorrector(metaclass=ABCMeta):
     """
     纠错的基类
     """
@@ -32,18 +32,18 @@ class BaseCorrecter(metaclass=ABCMeta):
 
     def correct(self, texts, probs=None):
 
-        # 前处理
+        # 前处理，过滤无需纠错的文本
         if probs:
-            texts2correct, mask2process, texts_pass = self.preprocess(texts, probs)
+            texts_to_correct, err_positions, texts_to_pass = self.preprocess(texts, probs)
         else:
-            texts2correct, mask2process, texts_pass = self.preprocess_non_prob(texts)
-        if not texts2correct:
+            texts_to_correct, err_positions, texts_to_pass = self.preprocess_non_prob(texts)
+        if not texts_to_correct:
             logger.info('没有需要纠错的文本')
             return texts
         # 纠错
-        after_correct = self.correct_all(texts2correct, mask2process)
-        # 后处理
-        after_correct = self.post_process(after_correct, texts_pass)
+        after_correct = self.correct_all(texts_to_correct, err_positions)
+        # 后处理，恢复原文本顺序
+        after_correct = self.post_process(after_correct, texts_to_pass)
 
         return after_correct
 
@@ -52,42 +52,38 @@ class BaseCorrecter(metaclass=ABCMeta):
         pass
 
     def preprocess(self, texts, probs):
-        text2process = []
-        text_pass = []
-        mask2process = []
+        text_to_process = []
+        text_to_pass = []
+        err_positions = []
         logger.info('共有【%d】条文本', len(texts))
 
         for i, (sent, p) in enumerate(zip(texts, probs)):
             if not self.do_correct_filter(sent):
-                # 全数字、全英文等情况不需要纠错
-                text_pass.append((i, sent))
+                text_to_pass.append((i, sent))
             else:
-                mask = self.prob2mask(p)
-                # prob高于阈值，不需要纠错
-                if not any(mask):
-                    text_pass.append((i, sent))
-                # 需要纠错
+                err_pos = self.find_err_pos_by_prob(p)
+                if not err_pos:
+                    text_to_pass.append((i, sent))
                 else:
-                    logger.debug('【%s】需要纠错：%r', sent, [(_s, _p) for _s, _p, _m in zip(sent, p, mask) if _m])
-                    text2process.append(sent)
-                    mask2process.append(mask)
-        logger.info('需要纠错【%d】条', len(text2process))
+                    logger.debug('【%s】需要纠错：%r', sent, [(sent[e], p[e]) for e in err_pos])
+                    text_to_process.append(sent)
+                    err_positions.append(err_pos)
+        logger.info('需要纠错【%d】条', len(text_to_process))
 
-        return text2process, mask2process, text_pass
+        return text_to_process, err_positions, text_to_pass
 
     def preprocess_non_prob(self, texts):
-        text2process = []
-        mask2process = []
+        text_to_process = []
+        err_positions = []
         text_pass = []
         for i, sent in enumerate(texts):
             if not self.do_correct_filter(sent):
-                # 全数字、全英文等情况不需要纠错
                 text_pass.append((i, sent))
             else:
-                text2process.append(sent)
-                mask2process.append([True]*len(sent))
+                text_to_process.append(sent)
+                err_positions.append(range(len(sent)))
 
-        return text2process, mask2process, text_pass
+        return text_to_process, err_positions, text_pass
 
     @staticmethod
     def post_process(results,text_pass):
@@ -110,35 +106,21 @@ class BaseCorrecter(metaclass=ABCMeta):
         return True
 
 
-    def probs2mask(self, probs):
+    def find_err_pos_by_prob(self, prob):
         """
-        >>> cr = BaseCorrecter(CorrecterConfig)
-        >>> cr.probs2mask([[0.99,0.85,1.00],[0.53,1.0]])
-        '[[0,1,0],[1,0]]'
-        """
-        masks = []
-        if not probs:
-            return masks
-        for p in probs:
-            m = [x < self.config.prob_threshold for x in p]
-            masks.append(m)
-
-        return masks
-
-    def prob2mask(self, prob):
-        """
-        >>> cr = BaseCorrecter(CorrecterConfig)
-        >>> cr.prob2mask([0.99,0.85,1.00])
-        '[0,1,0]'
+        >>> cr = BaseCorrector(correctorConfig)
+        >>> cr.find_err_pos_by_prob([0.99,0.85,1.00,0.77])
+        '[1,3]'
         """
         if not prob:
             return []
-        mask = [x < self.config.prob_threshold for x in prob]
+        err_pos = [i for i, p in enumerate(prob) if p < self.config.prob_threshold]
 
-        return mask
+        return err_pos
 
     @staticmethod
     def compile_regulars():
+        """compile frequently used regulars"""
         alphabet = re.compile(r'[a-zA-ZＡ-Ｚａ-ｚ]')
         chinese = re.compile(r'[\u4E00-\u9FA5]')
         traditional_chinese = re.compile(r'[褔変絶値萬與醜專業叢東絲丟丟兩嚴並喪個爿豐臨為麗舉麼義烏樂喬習鄉書買亂乾亂爭於虧雲亙亙亞亞產畝親'

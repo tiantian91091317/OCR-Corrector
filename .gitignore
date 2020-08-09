@@ -1,6 +1,6 @@
 .DS_Store
 .idea/
-data/char_meta.txt
-model/
+*data/char_meta.txt
+*model/
 *.pytest_cache
 *__pycache__/
