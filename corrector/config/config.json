@@ -4,7 +4,7 @@
       "biz_type": "report",
       "corrector_type":"keyword",
       "prob_threshold": 0.9,
-      "similarity_threshold": 0.6,
+      "similarity_threshold": 0.55,
       "char_meta_file": "config/char_meta.txt",
       "key_words_file": "config/kwds_credit_report.txt"
     },
@@ -15,10 +15,7 @@
       "max_seq_length": 64,
       "topn": 3,
       "batch_size": 16,
-      "char_meta_file": "config/char_meta.txt",
-      "vocab_file": "bert_modeling/vocab.txt",
-      "bert_config_file": "bert_modeling/bert_config.json",
-      "init_checkpoint": "model/pre-trained/bert_model.ckpt"
+      "char_meta_file": "config/char_meta.txt"
     }
   ]
 }

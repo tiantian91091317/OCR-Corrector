@@ -2,7 +2,7 @@
 # -*- encoding: utf-8 -*-
 """
 @Title   : 利用BERT模型进行纠错
-@File    :   bert_corrector.py
+@File    : bert_corrector.py
 @Author  : Tian
 @Time    : 2020/06/16 5:04 下午
 @Version : 1.0
@@ -27,17 +27,19 @@ class BertCorrector(BaseCorrector):
     def correct_all(self, texts, error_positions):
         """
         >>> kc = BertCorrector(MaskedLMConfig)
-        >>> kc.correct_all(['本着平等、白愿、诚信、互利的原则，一致同意本合同内容，并共同遵守。','无效、重大暇疵或不符合乙方其他规定的债权资产，'
+        >>> kc.correct_all(['本着平等、白愿、诚信、互利的原则，一致同意本合同内容，并共同遵守。',
+        '无效、重大暇疵或不符合乙方其他规定的债权资产，'
         ... '乙方有权拒绝，不子初始登'],[[5],[5, 31]])
-        ['本着平等、自愿、诚信、互利的原则，一致同意本合同内容，并共同遵守。', '无效、重大瑕疵或不符合乙方其他规定的债权资产，乙方有权拒绝，不予初始登']
+        ['本着平等、自愿、诚信、互利的原则，一致同意本合同内容，并共同遵守。',
+        '无效、重大瑕疵或不符合乙方其他规定的债权资产，乙方有权拒绝，不予初始登']
         """
-        # bert接收阿拉伯数字会出错（返回长度不定的阿拉伯数字）
-        rep = {'1': '一', '2': '二', '3': '三', '4': '四', '5': '五', '6': '六', '7': '七', '8': '八', '9': '九', '0': '零'}
+
+        # bert接收阿拉伯数字会出错（返回长度不定的阿拉伯数字），所以先去掉
+        rep = {'1': '一', '2': '二', '3': '三', '4': '四', '5': '五', '6': '六',
+               '7': '七', '8': '八', '9': '九', '0': '零'}
         rep = dict((re.escape(k), v) for k, v in rep.items())
         number = re.compile("|".join(rep.keys()))
         texts_numfree = [number.sub(lambda m: rep[re.escape(m.group(0))], s) for s in texts]
-        # # 前后加'。'，同样是为了bert输出正确结果
-        # texts_processed = ['。' + t + '。' for t in texts_numfree]
 
         bert_out = self.bert.find_topn_candidates(texts_numfree, error_positions)
         for i in range(len(texts)):
@@ -51,7 +53,7 @@ class BertCorrector(BaseCorrector):
                         logger.debug('原字【%s】为数字，不纠错', origin[e])
                         continue
 
-                    for k in range(self.config.topn):  # 0, 1, 2
+                    for k in range(self.config.topn):
                         confidence = bert_out[i][j][k][1]   # 第i个句子，第j个错字，第k个预测结果，第1个元素（confidence）
                         pred = bert_out[i][j][k][0]  # 第i个句子，第j个错字，第k个预测结果，第0个元素（pred）
                         char_similarity = self.char_sim.shape_similarity(pred, origin[e])

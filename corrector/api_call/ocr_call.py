@@ -1,5 +1,11 @@
+#!/usr/bin/env python
+# -*- encoding: utf-8 -*-
 """
-    调用各方接口返回解析结果
+@Title   : 接口调用
+@File    : ocr_call.py
+@Author  : Tian
+@Time    : 2020/06/16 5:04 下午
+@Version : 1.0
 """
 
 import logging

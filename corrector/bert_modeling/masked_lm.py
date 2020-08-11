@@ -1,3 +1,12 @@
+#!/usr/bin/env python
+# -*- encoding: utf-8 -*-
+"""
+@Title   : bert prediction
+@File    : masked_lm.py
+@Author  : Tian
+@Time    : 2020/06/16 5:04 下午
+@Version : 1.0
+"""
 import six
 import tensorflow as tf
 import numpy as np
@@ -6,16 +15,6 @@ import os
 import logging
 
 from corrector.bert_modeling import modeling, tokenization
-
-
-"""
-@Title   : bert prediction
-@File    :   masked_lm.py
-@Author  : Tian
-@Time    : 2020/06/16 5:04 下午
-@Version : 1.0
-"""
-
 
 warnings.filterwarnings("ignore")
 tf.logging.set_verbosity(tf.logging.ERROR)
@@ -29,11 +28,11 @@ logging.basicConfig(level=logging.INFO,
 
 class MaskedLMConfig(object):
     max_seq_length = 64
-    vocab_file = "corrector/bert_modeling/vocab.txt"
-    bert_config_file = "corrector/bert_modeling/bert_config.json"
-    init_checkpoint = "model/pre-trained/bert_modeling.ckpt"
-    topn = 3
+    vocab_file = "vocab.txt"
+    bert_config_file = "bert_config.json"
+    init_checkpoint = "model/pre-trained/bert_model.ckpt"
     char_meta_file = "data/char_meta.txt"
+    topn = 3
     batch_size = 2
 
     @classmethod
@@ -359,6 +358,12 @@ class DataProcessor(object):
 
 class MaskedLM(object):
     def __init__(self, config):
+        config.vocab_file = os.path.join(os.path.dirname(__file__),
+                                         config.vocab_file)
+        config.bert_config_file = os.path.join(os.path.dirname(__file__),
+                                               config.bert_config_file)
+        config.init_checkpoint = os.path.join(os.path.dirname(os.path.dirname(__file__)),
+                                               config.init_checkpoint)
         self.config = config
 
         # create session

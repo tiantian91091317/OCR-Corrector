@@ -11,6 +11,5 @@ setup(
 			  'ocr_corrector.utils', 'ocr_corrector.api_call'],
 	package_dir={'ocr_corrector':'corrector'},
 	package_data={'ocr_corrector.bert_modeling':['vocab.txt','bert_config.json'],
-				  'ocr_corrector':['data/*', 'config/config.json',
-								   'config/kwds*', '../demo.py']}
+				  'ocr_corrector':['data/*', 'config/config.json', 'config/kwds*']}
 	)

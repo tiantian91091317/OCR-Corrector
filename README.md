@@ -2,35 +2,34 @@
 
 专为OCR设计的纠错器。
 
-未来计划涵盖OCR需要的各种NLP工具，包括：
+未来考虑增加OCR需要的各种NLP工具，包括：
 1. 粘连文本分词
 2. 命名实体识别
 3. 键值对匹配
 
-# 文本纠错功能（2020.07）
+# 功能
 
 输入OCR识别结果（文本+单字符置信度），输出修正后的文本。
+(单字符置信度：识别网络最后 softmax 输出的概率值，用来进行方便地发现错字。)
 
-## 示例1
+## 示例
 
 输入：
 ```
 text = '我爱北京大安门'
 probs = [0.99, 0.99, 0.99, 0.99, 0.56, 0.99, 0.99]
 ```
-
 输出：
 ```
 text_corrected = '我爱北京天安门'
 ```
-
-## 示例2
 
 输入：
 ```
 text = '本着平等、白愿、诚信、互利的原则'
 probs = [0.99, 0.99, 0.99, 0.99, 0.99, 0.78, 0.99, 0.99, 0.99, 0.99, 0.99, 0.99, 0.99, 0.99, 0.99, 0.99]
 ```
+
 输出：
 ```
 text_corrected = '本着平等、自愿、诚信、互利的原则'
@@ -44,39 +43,30 @@ text_corrected = '本着平等、自愿、诚信、互利的原则'
 ## 文档识别
 文档是指书籍内页拍摄的图片、扫描的合同等有大段文字的图片。
 
-### 示例
-
-
-原图：
-<img src="./data/img1.jpeg" width="400" />
-
-纠错结果：
-<img src="./data/示意图.png" width="400" />
+### 纠错效果
+<img src="./data/doc_result.jpg" width="400" />
 
 
 ## 单据识别
-单据是指字段、格式相对固定，有统一模板或者近似统一的图片，比如身份证、银行卡、驾驶证、发票等等，主要特点是单据上出现的文本段相对固定。
+单据是指字段、格式相对固定，有统一模板或者近似统一的图片，比如各种表单、证件、发票等等，主要特点是单据上出现的文本段相对固定。
 
-### 示例
+使用央行征信报告作为示例：
 
-**todo:**
-原图：
-<img src="./data/示意图.png" width="400" />
-
-错误文本：
-<img src="./data/示意图.png" width="400" />
-
+### 纠错效果
+<img src="./data/report_result.jpg" width="400" />
+（原图质量较差，所以识别错误很多）
 
 # 使用方法
 
 1. clone 项目
 ```bash
 git clone https://github.com/tiantian91091317/OCR-Corrector.git
+pip install -r requirements.txt
 ```
 
 2. 下载模型和数据
 1）下载[预训练好的BERT模型](https://storage.googleapis.com/bert_models/2018_11_03/chinese_L-12_H-768_A-12.zip) 到 corrector/model/pre-trained 目录下
-2）下载 char_meta.txt 字形编码（IDS）文件下载后放到 corrector/config 目录下
+2）下载用于评价字形相似度的 char_meta.txt 放到 corrector/config 目录下
 下载地址:https://pan.baidu.com/s/1iqA-GbzzHBBWfWaxe1g_fg  密码:3f11
 
 3. 安装
@@ -101,9 +91,9 @@ ocr_res_corrected = corrector.correct(ocr_results, recog_probs, biz_type)
 可以通过运行以下命令进行测试：
 ```bash
 # 测试文档识别纠错
-python demo.py --img=data/img1.jpeg --biz=doc --api=own
+python demo.py --img=corrector/data/1.jpg --biz=doc --api=own
 # 测试单据识别纠错
-python demo.py --img=data/img2.jpeg --biz=report --api=own
+python demo.py --img=corrector/data/2.jpg --biz=report --api=own
 ```
 
 ### 方法二
@@ -120,7 +110,7 @@ python demo.py --img=data/img2.jpeg --biz=report --api=own
 然后可以任意传图片测试纠错结果。
 
 ```bash
-python demo.py --img=data/test.jpg --biz=[doc|report] --api=ali 
+python demo.py --img=corrector/data/your_img.jpg --biz=[doc|report|your_type] --api=ali 
 ```
 
 ### 新增单据类型
@@ -148,17 +138,14 @@ python demo.py --img=data/test.jpg --biz=[doc|report] --api=ali
 
 # 原理
 
-## 文档识别的纠错
+见文章：
+https://zhuanlan.zhihu.com/p/179957371
 
-## 单据识别的纠错
 
 # 参考项目
+1. Faspell https://github.com/iqiyi/FASPell
+2. pycorrector https://github.com/shibing624/pycorrector
 
-# 创新点
-
-## 置信度（2020.07）
-
-## 关键词表法纠错（2020.07）
 
 # 未来计划
 

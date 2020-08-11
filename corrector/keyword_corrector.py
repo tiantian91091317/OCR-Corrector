@@ -95,7 +95,8 @@ class KeywordCorrector(BaseCorrector):
                 for c in err:
                     _t[c] = substitution.pop(0)
                 results.append(''.join(_t))
-                logger.info('目标【%s】纠正为关键词【%s】，相似度【%f】', text, ''.join(_t), max(sims))
+                logger.info('目标【%s】与关键词【%s】相似度【%f】', text, ''.join(_t), max(sims))
+                logger.debug('※ 接受纠错 ※')
 
             except Exception:
                 results.append(text)
@@ -111,7 +112,9 @@ class KeywordCorrector(BaseCorrector):
         return tree
 
     def load_key_words_dict(self):
-        with open(self.config.key_words_file) as f:
+        file = os.path.join(os.path.dirname(__file__),
+                             self.config.key_words_file)
+        with open(file) as f:
             lines = f.readlines()
             lines = [l.strip() for l in lines]
         return set(lines)

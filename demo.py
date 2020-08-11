@@ -48,7 +48,7 @@ def main():
     if biz_type not in corrector:
         logger.error('错误的业务类型:%s', biz_type)
         return
-    if os.path.exists(img):
+    if not os.path.exists(img):
         logger.error('图片不存在，请检查图片路径:%s', img)
         return
 

@@ -1,3 +1,10 @@
+#!/usr/bin/env python
+# -*- encoding: utf-8 -*-
+
+"""
+reference: https://github.com/iqiyi/FASPell
+"""
+
 import os
 import numpy as np
 from subprocess import Popen, PIPE, STDOUT
@@ -213,21 +220,17 @@ class CharFuncs(object):
         this function returns weighted similarity. When used in FASPell, each weight can only be 0 or 1.
         """
 
-        # assert char1 in self.char_dict
-        # assert char2 in self.char_dict
-        # shape_w, sound_w, freq_w = weights
-
-        # return 0.0  # 先不用csd，所以先把下面的注掉
+        assert char1 in self.char_dict
+        assert char2 in self.char_dict
+        shape_w, sound_w, freq_w = weights
 
         if char1 in self.char_dict and char2 in self.char_dict:
 
             shape_sim = self.shape_similarity(char1, char2, as_tree=as_tree)
-            # sound_sim = self.pronunciation_similarity(char1, char2)
-            # freq_sim = 1.0 - self.char_dict[char2] / len(self.char_dict)
+            sound_sim = self.pronunciation_similarity(char1, char2)
+            freq_sim = 1.0 - self.char_dict[char2] / len(self.char_dict)
 
-            return shape_sim  # 由于ocr只用到shape sim，所以把原weighted版本注掉
-
-            # return shape_sim * shape_w + sound_sim * sound_w + freq_sim * freq_w
+            return shape_sim * shape_w + sound_sim * sound_w + freq_sim * freq_w
         else:
             return 0.0
 
@@ -243,9 +246,6 @@ class CharFuncs(object):
         >>> c.shape_similarity('个处个业', '未还本金')
         0.30434782608695654
         """
-        # assert char1 in self.data
-        # assert char2 in self.data
-
         def safe_encode(decomp):
             tree = ''
             for c in string_to_tree(decomp):
@@ -267,34 +267,10 @@ class CharFuncs(object):
         decomp1 = self.decompose_text(char1)
         decomp2 = self.decompose_text(char2)
 
-        # logging.debug('decompositions of %s is: %s', char1, decomps_1)
-        # logging.debug('decompositions of %s is: %s', char2, decomps_2)
-
         similarity = 0.0
         ed = edit_distance(safe_encode_string(decomp1), safe_encode_string(decomp2))
         normalized_ed = ed / max(len(decomp1), len(decomp2))
         similarity = max(similarity, 1 - normalized_ed)
-
-        # if as_tree:
-        #     for decomp1 in decomps_1:
-        #         for decomp2 in decomps_2:
-        #             if not safe:
-        #                 ted = tree_edit_distance(string_to_tree(decomp1), string_to_tree(decomp2))
-        #             else:
-        #                 ted = tree_edit_distance(safe_encode(decomp1), safe_encode(decomp2))
-        #             normalized_ted = 2 * ted / (len(decomp1) + len(decomp2) + ted)
-        #             similarity = max(similarity, 1 - normalized_ted)
-        # else:
-        #     for decomp1 in decomps_1:   # in the case of multiple decomposition methods, choose the maximum similarity
-        #         for decomp2 in decomps_2:
-        #             if not safe:
-        #                 ed = edit_distance(decomp1, decomp2)
-        #             else:
-        #                 ed = edit_distance(safe_encode_string(decomp1), safe_encode_string(decomp2))
-        #             normalized_ed = ed / max(len(decomp1), len(decomp2))
-        #             similarity = max(similarity, 1 - normalized_ed)
-        #             logging.debug('edit distance of %s and %s is: %s', char1, char2, ed)
-        #             logging.debug('normalized edit distance is: %s', normalized_ed)
 
         return similarity
 
