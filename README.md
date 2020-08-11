@@ -15,10 +15,12 @@
 ## 示例
 
 输入：
+
 ```
 text = '我爱北京大安门'
 probs = [0.99, 0.99, 0.99, 0.99, 0.56, 0.99, 0.99]
 ```
+
 输出：
 ```
 text_corrected = '我爱北京天安门'
@@ -44,7 +46,7 @@ text_corrected = '本着平等、自愿、诚信、互利的原则'
 文档是指书籍内页拍摄的图片、扫描的合同等有大段文字的图片。
 
 ### 纠错效果
-<img src="./data/doc_result.jpg" width="400" />
+<img src="corrector/data/doc_result.jpg" width="400" />
 
 
 ## 单据识别
@@ -53,7 +55,7 @@ text_corrected = '本着平等、自愿、诚信、互利的原则'
 使用央行征信报告作为示例：
 
 ### 纠错效果
-<img src="./data/report_result.jpg" width="400" />
+<img src="corrector/data/report_result.jpg" width="400" />
 （原图质量较差，所以识别错误很多）
 
 # 使用方法
@@ -65,13 +67,15 @@ pip install -r requirements.txt
 ```
 
 2. 下载模型和数据
-1）下载[预训练好的BERT模型](https://storage.googleapis.com/bert_models/2018_11_03/chinese_L-12_H-768_A-12.zip) 到 corrector/model/pre-trained 目录下
+1) 下载[预训练好的BERT模型](https://storage.googleapis.com/bert_models/2018_11_03/chinese_L-12_H-768_A-12.zip) 到 corrector/model/pre-trained 目录下<br>
+
 2）下载用于评价字形相似度的 char_meta.txt 放到 corrector/config 目录下
 下载地址:https://pan.baidu.com/s/1iqA-GbzzHBBWfWaxe1g_fg  密码:3f11
 
 3. 安装
 ```bash
 python setup.py install
+pip install -r requirements
 ```
 
 ## 使用
@@ -97,26 +101,27 @@ python demo.py --img=corrector/data/2.jpg --biz=report --api=own
 ```
 
 ### 方法二
-可以调用识别API后进行后处理。目前支持[阿里高精版识别接口](https://market.aliyun.com/products/57124001/cmapi028554.html?spm=5176.200117.0.0.4f57261aiZhbVd&innerSource=search#sku=yuncode2255400000)的调用。
+可以调用识别API后进行后处理。目前支持[阿里高精版识别接口](https://market.aliyun.com/products/57124001/cmapi028554.html?spm=5176.200117.0.0.4f57261aiZhbVd&innerSource=search#sku=yuncode2255400000)的调用。<br>
 需要先申请 app code（可以开通免费试用）；然后在 ```corrector/api_call/ali_ocr.py``` 中更新app code：
+
 ```python
-	url = 'https://ocrapi-advanced.taobao.com/ocrservice/advanced'
-    post_data = {"img":img,
-                 "prob":True,
-                 "charInfo":True
-                 }
-    app_code = your_app_code
+url = 'https://ocrapi-advanced.taobao.com/ocrservice/advanced'
+post_data = {"img":img,
+             "prob":True,
+             "charInfo":True
+             }
+app_code = your_app_code
 ```
-然后可以任意传图片测试纠错结果。
+然后可以传任意图片测试纠错结果：
 
 ```bash
 python demo.py --img=corrector/data/your_img.jpg --biz=[doc|report|your_type] --api=ali 
 ```
 
 ### 新增单据类型
-文档识别的纠错主要利用局部语义信息进行纠错，**无需**特殊配置；
-对于单据识别，由于主要基于其关键词表进行纠错，所以需要进行配置（以新增保单识别为例）：
-1. 在 ```corrector/config/config.json``` 中增加新单据类型的配置：
+文档识别的纠错主要利用局部语义信息进行纠错，**无需**特殊配置；<br>
+对于单据识别，由于主要基于其关键词表进行纠错，所以需要进行配置：
+1. 在 ```corrector/config/config.json``` 中增加新单据类型的配置（以新增保单识别为例）：
 ```json
 {
       "biz_type": "insurance",
