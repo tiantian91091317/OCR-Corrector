@@ -46,7 +46,7 @@ text_corrected = '本着平等、自愿、诚信、互利的原则'
 文档是指书籍内页拍摄的图片、扫描的合同等有大段文字的图片。
 
 ### 纠错效果
-<img src="corrector/data/doc_result.jpg" width="400" />
+<img src="corrector/data/doc_result.jpg"/>
 
 
 ## 单据识别
@@ -55,7 +55,7 @@ text_corrected = '本着平等、自愿、诚信、互利的原则'
 使用央行征信报告作为示例：
 
 ### 纠错效果
-<img src="corrector/data/report_result.jpg" width="400" />
+<img src="corrector/data/report_result.jpg"/>
 （原图质量较差，所以识别错误很多）
 
 # 使用方法
@@ -68,7 +68,6 @@ pip install -r requirements.txt
 
 2. 下载模型和数据
 1) 下载[预训练好的BERT模型](https://storage.googleapis.com/bert_models/2018_11_03/chinese_L-12_H-768_A-12.zip) 到 corrector/model/pre-trained 目录下<br>
-
 2）下载用于评价字形相似度的 char_meta.txt 放到 corrector/config 目录下
 下载地址:https://pan.baidu.com/s/1iqA-GbzzHBBWfWaxe1g_fg  密码:3f11
 
