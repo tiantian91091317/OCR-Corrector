@@ -67,7 +67,9 @@ pip install -r requirements.txt
 ```
 
 2. 下载模型和数据
-1) 下载[预训练好的BERT模型](https://storage.googleapis.com/bert_models/2018_11_03/chinese_L-12_H-768_A-12.zip) 到 corrector/model/pre-trained 目录下<br>
+
+1) 下载[预训练好的BERT模型](https://storage.googleapis.com/bert_models/2018_11_03/chinese_L-12_H-768_A-12.zip) 到 corrector/model/pre-trained 目录下
+
 2）下载用于评价字形相似度的 char_meta.txt 放到 corrector/config 目录下
 下载地址:https://pan.baidu.com/s/1iqA-GbzzHBBWfWaxe1g_fg  密码:3f11
 
