@@ -74,7 +74,7 @@ class BKTree(object):
     @staticmethod
     def load_diction(diction):
         diction = os.path.join(os.path.dirname(os.path.dirname(__file__)), diction)
-        with open(diction) as f:
+        with open(diction, encoding="utf-8") as f:
             lines = f.readlines()
             lines = [l.strip() for l in lines]
         return set(lines)

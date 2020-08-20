@@ -10,6 +10,7 @@
 import logging
 import re
 import six
+import os
 
 from corrector.base_corrector import BaseCorrector, CorrectorConfig
 from corrector.utils.BKtree import BKTree
@@ -114,7 +115,7 @@ class KeywordCorrector(BaseCorrector):
     def load_key_words_dict(self):
         file = os.path.join(os.path.dirname(__file__),
                              self.config.key_words_file)
-        with open(file) as f:
+        with open(file, encoding="utf-8") as f:
             lines = f.readlines()
             lines = [l.strip() for l in lines]
         return set(lines)
