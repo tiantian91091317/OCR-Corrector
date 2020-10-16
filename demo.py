@@ -18,7 +18,7 @@ logging.basicConfig(level=logging.DEBUG,
                     datefmt='%H:%M:%S')
 
 
-import ocr_corrector
+import corrector as ocr_corrector
 
 
 def my_ocr(image):
